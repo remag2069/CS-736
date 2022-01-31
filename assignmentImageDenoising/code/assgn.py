@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import scipy.io
 
 
-mat = scipy.io.loadmat('C:/Users/dell/OneDrive/Desktop/CS 736/assignmentImageDenoising/data/assignmentImageDenoisingPhantom.mat')
+mat = scipy.io.loadmat('../data/assignmentImageDenoisingPhantom.mat')
 ALPHA=0.8
 
 
@@ -52,12 +52,12 @@ Y=mat["imageNoisy"]
 X=mat["imageNoiseless"]
 
 SIGMA=1
-STEP_SIZE=1
+STEP_SIZE=0.001
 
 # gradients=2*(X-Y)/SIGMA**2 +
 output=Y
-for epoch in range(1000):
-    gradient=potential(output,"h")
+for epoch in range(100):
+    gradient=potential(output,"d")
     previous=output
     output=output-STEP_SIZE*gradient
     if s.rrmse(output,previous)<0.0003:
