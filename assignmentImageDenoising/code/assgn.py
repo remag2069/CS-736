@@ -38,11 +38,11 @@ def potential(image,mode="q"):
     if mode=="r":
         for shift_index in [-1,1]:
             yi=np.roll(image,shift_index,1)
-            gradient+=s.rice(image-yi)
-            gradient+=2*(output-yi)/(SIGMA**2)  ##prior
+            gradient+=s.rice(image-yi)*(1-ALPHA)
+            gradient+=2*ALPHA*(output-yi)/(SIGMA**2)  ##prior
             yi=np.roll(image,shift_index,0)
-            gradient+=s.rice(image-yi)
-            gradient+=2*(output-yi)/(SIGMA**2)  ##prior
+            gradient+=s.rice(image-yi)*(1-ALPHA)
+            gradient+=2*ALPHA*(output-yi)/(SIGMA**2)  ##prior
 
     
 
