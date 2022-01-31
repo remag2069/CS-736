@@ -59,7 +59,7 @@ output=Y
 for epoch in range(1000):
     gradient=potential(output,"h")
     previous=output
-    output=output-0.001*gradient
+    output=output-STEP_SIZE*gradient
     if s.rrmse(output,previous)<0.0003:
         print(epoch)
         break
