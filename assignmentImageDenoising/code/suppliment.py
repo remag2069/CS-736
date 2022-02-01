@@ -8,8 +8,7 @@ def quadratic(u):
     return gradient
 
 
-def huber(u):
-    gamma=0.1
+def huber(u,gamma=0.1):
     loss = np.sum(u**2)
     # print(loss)
     gradient=u
@@ -19,8 +18,7 @@ def huber(u):
     return gradient
 
 
-def rice(u):
-    gamma=0.006
+def rice(u,gamma=0.006):
     gradient=abs(u)/(1+abs(u)/gamma)*(u/abs(u))
     return gradient
 
