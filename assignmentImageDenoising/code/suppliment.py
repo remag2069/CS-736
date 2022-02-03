@@ -16,7 +16,7 @@ def huber(u,gamma=0.1):
     gradient[abs(gradient)<=gamma]=gamma*gradient[abs(gradient)<=gamma]/abs(gradient[abs(gradient)<=gamma])   
     return gradient,loss
 
-## discontinuity-adaptive functionprior model
+## discontinuity-adaptive function prior model
 def rice(u,gamma=0.006):
     loss=gamma*abs(u)-(gamma**2)*np.log10(1+abs(u)/gamma)
     gradient=abs(u)/(1+abs(u)/gamma)*(u/abs(u))
