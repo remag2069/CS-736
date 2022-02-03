@@ -5,26 +5,24 @@ import cv2
 import matplotlib.pyplot as plt
 import scipy.io
 
+
 # quadratic- alpha=0.8
 # huber- alpha=0.8, gamma=0.1 0.33425
-#0.1,0.3
-#0.1,0.4
-#0.2,0.4
 # Rice- alpha=0.8, gamma=0.1 0.33425
 
 mat = scipy.io.loadmat('../data/assignmentImageDenoisingPhantom.mat')
-LOSSES=[]
+
 Y=mat["imageNoisy"]
 X=mat["imageNoiseless"]
+cmg = plt.get_cmap('gray')
 
-ALPHA=0.5
-GAMMA=0.4
+ALPHA=0.8
 SIGMA=1
-STEP_SIZE=0.1
+STEP_SIZE=0.001
 
 data = np.array(mat) 
-cv2.imshow("Noisy",mat["imageNoisy"])
-cv2.imshow("Noiseless",mat["imageNoiseless"])
+# cv2.imshow("Noisy",mat["imageNoisy"])
+# cv2.imshow("Noiseless",mat["imageNoiseless"])
 
 def potential(image,mode="q",gamma=0.1):
     gradient=0
@@ -32,7 +30,6 @@ def potential(image,mode="q",gamma=0.1):
     
     if mode=="h":
         for shift_index in [-1,1]:
-            # print(ALPHA)
             yi=np.roll(image,shift_index,1)
             new_grad,new_loss=s.huber(image-yi,gamma)
             gradient+=new_grad*(1-ALPHA)
@@ -88,16 +85,17 @@ def potential(image,mode="q",gamma=0.1):
 
 def dyn_step_sizer(STEP_SIZE,epoch):
     # print(STEP_SIZE)
-    return STEP_SIZE-0.0495/2**epoch
+    # return STEP_SIZE-0.0495/2**epoch
+    return STEP_SIZE-0.0009/2**(epoch/10)
 
 
-# for gamma in [x*0.4 for x in range(1,10)]:
-#     for ALPHA in [x*0.1 for x in range(1,10)]:
+# for ALPHA in [x*0.1 for x in range(1,10)]:
+#     for gamma in [x*0.1 for x in range(1,10)]:
 #         output=Y
 #         STEP_SIZE=0.1
-#         for epoch in range(100):
+#         for epoch in range(1000):
 #             STEP_SIZE=dyn_step_sizer(STEP_SIZE,epoch)
-#             gradient,loss=potential(output,"h",gamma)
+#             gradient=potential(output,"h",gamma)
 #             # print(gradient)
 #             previous=output
 #             output=output-STEP_SIZE*gradient
@@ -107,76 +105,71 @@ def dyn_step_sizer(STEP_SIZE,epoch):
     
 #         print(ALPHA,gamma,s.rrmse(output,X))
 
-#         # cv2.imshow("output",output)
-#         cv2.imwrite("output_"+str(gamma*10)+".jpg",output*255)
-#         # cv2.waitKey()
-
-#     break
 
 
-# for ALPHA in [0.5*0.8,0.5,0.5*1.2]:
-#     for gamma in [0.4*0.8,0.4,0.4*1.2]:
-        
-#         loss=inf
+loss=inf
+losses = []
+step_sizes = []
+rrmses = []
+output=Y
+epochs = 25
+_, axs = plt.subplots(2, 5, figsize=(24, 12))
+for epoch in range(epochs):
+    prev_loss=loss
+    gradient,loss=potential(output,"h",0.1)
+    loss=np.sum(loss)
+    losses.append(loss)
+    if loss > prev_loss:
+        print("Prev loss", prev_loss, "    epoch:", epoch)
+        STEP_SIZE=dyn_step_sizer(STEP_SIZE,epoch)
+        step_sizes.append(STEP_SIZE)
+        print("Step size", STEP_SIZE)
+    # print(gradient)
+    step_sizes.append(STEP_SIZE)
+    previous=output
+    output=output-STEP_SIZE*gradient
+    rrmses.append(s.rrmse(output,X))
+    if s.rrmse(output,previous)<0.000475: #0.0001 prev
+        print("STOP EPOCH::::::",epoch)
+        break
+    if epoch%10==0:
+        print("curr epoch=",epoch,"\nLoss=",loss)
+    if epoch%(epochs//10)==0:
+        den = (epochs//10)+1
+        row = (epoch//den)//5
+        col = (epoch//den)%5
+        axs[row,col].set_title(f'output_{epoch}')
+        axs[row,col].imshow(cmg(output))
 
-#         output=Y
-#         prev_loss=0
-#         previous=0
-#         for epoch in range(100):
-#             prev_loss=loss
-#             gradient,loss=potential(output,"h",GAMMA)
-#             loss=np.sum(loss)
-#             LOSSES.append(loss)
-#             # if loss >= prev_loss:
-#                 # print(prev_loss)
-#             STEP_SIZE=dyn_step_sizer(STEP_SIZE,epoch)
-#             # else:
-#             #     STEP_SIZE*=1.1
-#             # print(STEP_SIZE)
-#             # print(gradient)
-#             previous=output
-#             output=output-STEP_SIZE*gradient
-            
-#             if s.rrmse(output,previous)<0.0001:
-#                 print("STOP EPOCH::::::",epoch)
-#                 break
-#             if epoch%10==0:
-#                 print("curr epoch=",epoch,"\nLoss=",loss)
+plt.show()
+plt.title("losses")       
+plt.plot(losses)
+plt.show()
+plt.title("rrmses")       
+plt.plot(rrmses)
+plt.show()
+plt.title("step_sizes")       
+plt.plot(step_sizes)
+plt.show()
 
-#         print(ALPHA,gamma,s.rrmse(output,X))
+print("Alpha:", ALPHA, "    RRMSE:", s.rrmse(output,X))
+cm = plt.get_cmap('jet')
+colored_image = cm(output)
+_, axs = plt.subplots(2, 2, figsize=(12, 12))
+axs[0,0].set_title('Noisy')
+axs[0,0].imshow(cmg(mat["imageNoisy"]))
+axs[0,1].set_title('Noiseless')
+axs[0,1].imshow(cmg(mat["imageNoiseless"]))
+axs[1,0].set_title('Output')
+axs[1,0].imshow(cmg(output))
+axs[1,1].set_title('Colored image')
+axs[1,1].imshow(colored_image)
+plt.show()
 
-
-
-#         cv2.imshow("output_"+str(ALPHA)+"_"+str(gamma),output)
-#         # cv2.imwrite("output_1000epoch.jpg",output*255)
+# cv2.imshow("output",output)
+# cv2.imwrite("output_0_3.jpg",output*255)
 
 # cv2.waitKey()
 
 
-# plt.plot(LOSSES)
-# plt.show()
 
-
-
-temp1=0.00001
-temp2=0.216
-
-for ALPHA in [temp1*0.8,temp1,temp1*1.2]:
-    for gamma in [temp2*0.8,temp2,temp2*1.2]:
-        output=Y
-        STEP_SIZE=0.1
-        for epoch in range(100):
-            STEP_SIZE=dyn_step_sizer(STEP_SIZE,epoch)
-            gradient,loss=potential(output,"r",gamma)
-            # print(gradient)
-            previous=output
-            output=output-STEP_SIZE*gradient
-            if s.rrmse(output,previous)<0.001:
-                print("EPOCH::::::",epoch)
-                break
-    
-        print(ALPHA,gamma,s.rrmse(output,X))
-
-        # cv2.imshow("output",output)
-        cv2.imwrite("output_"+str(ALPHA*10)+str(gamma*10)+".jpg",output*255)
-        # cv2.waitKey()
