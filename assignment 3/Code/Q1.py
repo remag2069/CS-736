@@ -86,10 +86,17 @@ idx = D.argsort()[::-1]
 eigenValues = np.real(D[idx])
 eigenVectors = np.real(V[:,idx])
 
-pm31 = mean_shape + 2 * (np.sqrt(eigenValues[2])*eigenVectors[:,2]).reshape(-1,2)
-pm31 = mean_shape + 2 * (np.sqrt(eigenValues[2])*eigenVectors[:,2]).reshape(-1,2)
+for n in range(3):
+    plt.plot(mean_shape[:,0],mean_shape[:,1],label="mean")
+    for i in range(40):
+        plt.scatter(preshapePointSets[i,:,0], preshapePointSets[i,:,1],s=5)
+    pm31 = mean_shape + 2 * (np.sqrt(eigenValues[n])*eigenVectors[:,n]).reshape(-1,2)
+    pm32 = mean_shape - 2 * (np.sqrt(eigenValues[n])*eigenVectors[:,n]).reshape(-1,2)
 
-plt.plot(pm31[:,0], pm31[:,1])
-plt.legend("")
-plt.title("")
-plt.show()
+    plt.plot(pm31[:,0], pm31[:,1],label="+ 2sd")
+    plt.legend("+")
+
+    plt.plot(pm32[:,0], pm32[:,1],label="- 2sd")
+    plt.legend()
+    plt.title(str("Principle mode "+str(n)+"(+-2 SD)"))
+    plt.show()
