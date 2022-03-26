@@ -9,7 +9,7 @@ import cv2
 #     print(list(f.keys()))
 
 mat = h5py.File('../data/hands2D.mat')
-ITERS=50
+ITERS=5
 
 
 def find_rotation(Z1,Z2):
@@ -50,13 +50,12 @@ mean_shape=preshapePointSets[0,:,:]
 Errors=[]
 
 for iter in range(ITERS):
-    # for i in range(40):
-    #     plt.scatter(preshapePointSets[i,:,0], preshapePointSets[i,:,1],s=5)
-    # plt.show()
     for i in range(40):
         R=find_rotation(preshapePointSets[i,:,:],mean_shape)
 
-        preshapePointSets[i,:,:]=np.matmul(preshapePointSets[i,:,:],R)
+        preshapePointSets[i,:,:]=np.transpose(np.matmul(R,np.transpose(preshapePointSets[i,:,:])))
+
+    # print(preshapePointSets[23,34,1])
 
     new_mean_shape = np.mean(preshapePointSets,axis=0)
     norm=np.sqrt(np.sum(new_mean_shape**2))
@@ -64,14 +63,14 @@ for iter in range(ITERS):
     new_mean_shape = new_mean_shape/norm
 
     error = np.sqrt(np.sum((new_mean_shape - mean_shape)**2))
-    print("###########",iter,norm,error)
+    # print("###########",iter,norm,error)
     Errors.append(error)
 
     mean_shape=new_mean_shape
 
 plt.show()
 
-# print("~~~~~~~~~~~~~~~~~",preshapePointSets[0,:,:])
+print("~~~~~~~~~~~~~~~~~",preshapePointSets[0,:,:])
 print(Errors)
 
 
